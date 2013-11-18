@@ -88,7 +88,6 @@ fprintf('randmio_und       : ');
 tic();
 for i=1:ITERS, randmio_und(sc_mx, 4); end
 toc();
-fprintf('randmio_und       : ');
 
 % Compare it to Maslov's own sym_generate_srand, available
 % from http://www.cmth.bnl.gov/~maslov/sym_generate_srand.m .

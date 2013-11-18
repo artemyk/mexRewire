@@ -1,10 +1,6 @@
 // Matrix rewiring code, adapted from "sym_generate_srand"
 // Artemy Kolchinsky, akolchin@indiana.edu
 
-// Not parallelized yet
-// To take advantage of parallelism, be sure to call MATLAB like:
-// export OMP_NUM_THREADS=8 ; matlab -nojvm -nodesktop
-
 
 #include "mex.h"
 #include <omp.h>
@@ -39,21 +35,18 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     
     if (N != N2)  mexErrMsgTxt("Matrix not square!");
     
-    const double * graph            = (double *) mxGetData(prhs[0]);
+    const double * graph = (double *) mxGetData(prhs[0]);
     
     const unsigned int NUM_RETURN_DIMS = 2;
     mwSize * out_dims = (mwSize *) mxMalloc (NUM_RETURN_DIMS * sizeof(mwSize));
     out_dims[0] = N;
     out_dims[1] = N;
-    // NUM_RETURN_DIMS = 3;
-    // out_dims[2] = returnGraphs;
     
     plhs[0] = mxCreateNumericArray(NUM_RETURN_DIMS, out_dims, mxDOUBLE_CLASS, mxREAL);
     double * outGraph     = (double *) mxGetData(plhs[0]);
     
     
     std::vector<unsigned int> i_srand, j_srand;
-    // std::vector<double> orig_edge_weight;
     for (unsigned int i=0; i<N; i++) {
         for (unsigned int j=0; j<i; j++) {
             if (i <= j) continue;
@@ -61,7 +54,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
             if (cWeight != 0.0) {
                 i_srand.push_back(i);
                 j_srand.push_back(j);
-                //orig_edge_weight.push_back(graph[i*N+j]);
                 outGraph[N*i+j] = cWeight;
                 outGraph[N*j+i] = cWeight;
             }
@@ -74,6 +66,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
         // Some constraint graph, only edges preserving this can be swapped
         // For example, for distance sensitive rewiring, this argument is distance matrix
         constraintGraph  = (double *) mxGetData(prhs[2]);
+        const mwSize * dim_array_constraint;
+        dim_array_constraint = mxGetDimensions(prhs[2]);
+        if (dim_array_constraint[0] != N || dim_array_constraint[1] != N) {
+            mexErrMsgTxt("Constraint matrix should be same size as input graph matrix");
+        }
+            
     }
     if (nrhs > 3) {
         mexErrMsgTxt("Incorrect number of input arguments required.");
@@ -86,7 +84,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     unsigned long numRewires = Ne * numRewiresPerEdge;
     // std::cout << "# of vertices: " << N << "\t# of edges/2: " << Ne << " / #rewires: "<<  numRewires << " / # graphs: " << returnGraphs << std::endl;
     
-    //  unsigned int cur_graph_offset_ndx = g*N*N;
     unsigned long MAX_ITERS = 10000000, num_attempts = 0, actualRewires = 0;
     for (; num_attempts < MAX_ITERS && actualRewires < numRewires; num_attempts++) {
         unsigned int e1=floor(Ne*unifRand());
@@ -99,7 +96,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
             }
             if (constraintGraph != NULL) {
                 if (constraintGraph[N*v1+v2] != constraintGraph[N*v1+v3] || constraintGraph[N*v3+v4] != constraintGraph[N*v4+v2]) {
-                    constraintSkipped = 0;
+                    constraintSkipped += 1;
                     continue; // constraints don't match
                 }
             }
