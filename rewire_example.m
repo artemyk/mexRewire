@@ -1,4 +1,5 @@
 addpath('rewire_graph_mex');
+addpath('comparison_rewiring_funcs');
 
 load('sample_mxs', 'sc_mx','dist_mx');
 
@@ -87,15 +88,14 @@ fprintf('randmio_und       : ');
 tic();
 for i=1:ITERS, randmio_und(sc_mx, 4); end
 toc();
+fprintf('randmio_und       : ');
 
-%We can also compare it to Maslov's own sym_generate_srand, available
-%from http://www.cmth.bnl.gov/~maslov/sym_generate_srand.m .
-%{
+% Compare it to Maslov's own sym_generate_srand, available
+% from http://www.cmth.bnl.gov/~maslov/sym_generate_srand.m .
 fprintf('sym_generate_srand: ');
 tic();
-for i=1:ITERS, sym_generate_srand(G, 4*Ne); end
+for i=1:ITERS, sym_generate_srand(sc_mx, 4*Ne); end
 toc();
-%}
 
 % Sometimes first time mex file is called its slower, so make sure we
 % get rid of this effect by calling it once:
