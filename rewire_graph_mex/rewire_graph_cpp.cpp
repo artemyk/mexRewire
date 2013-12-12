@@ -65,11 +65,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     if (nrhs > 2) {
         // Some constraint graph, only edges preserving this can be swapped
         // For example, for distance sensitive rewiring, this argument is distance matrix
-        constraintGraph  = (double *) mxGetData(prhs[2]);
         const mwSize * dim_array_constraint;
         dim_array_constraint = mxGetDimensions(prhs[2]);
-        if (dim_array_constraint[0] != N || dim_array_constraint[1] != N) {
+	if (dim_array_constraint[0] > 0 && dim_array_constraint[0] > 0) {
+          constraintGraph  = (double *) mxGetData(prhs[2]);
+          if (dim_array_constraint[0] != N || dim_array_constraint[1] != N) {
+            std::cout << "Constraint matrix: " << dim_array_constraint[0] << "," << dim_array_constraint[1] << " / graph matrix: " << N << "," << N;
             mexErrMsgTxt("Constraint matrix should be same size as input graph matrix");
+          }
         }
             
     }
