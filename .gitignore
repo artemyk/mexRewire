@@ -1,1 +1,5 @@
 *.m~
+*.swp
+.gitignore
+*.o
+*.cpp~
